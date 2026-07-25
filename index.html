@@ -1,0 +1,549 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI Resume Builder - Create Your Perfect Resume Free</title>
+<meta name="description" content="Build a professional resume in minutes using AI. No sign-up needed. Free forever."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<!-- Google Analytics 4 - Replace G-XXXXXXXXXX with your Measurement ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX');
+  function gaEvent(n,p){if(typeof gtag==='function')gtag('event',n,p||{});}
+</script>
+<style>
+:root{
+  --bg:#07071a;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.09);
+  --glow:rgba(139,92,246,0.45);--p:#8b5cf6;--pl:#a78bfa;
+  --a:#06b6d4;--a2:#f59e0b;--t:#f1f5f9;--tm:#94a3b8;--td:#64748b;
+  --ok:#10b981;--err:#ef4444;--gr:linear-gradient(135deg,#8b5cf6,#06b6d4);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 15% 15%,rgba(139,92,246,.13) 0,transparent 55%),
+             radial-gradient(ellipse at 85% 85%,rgba(6,182,212,.09) 0,transparent 55%);
+  animation:bp 9s ease-in-out infinite alternate;z-index:0;pointer-events:none;}
+@keyframes bp{0%{transform:scale(1)}100%{transform:scale(1.08) rotate(2deg)}}
+.wrap{position:relative;z-index:1;}
+header{text-align:center;padding:3rem 1rem 1.5rem;}
+.logo{display:inline-flex;align-items:center;gap:.5rem;font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;background:var(--gr);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.2rem;}
+.logo i{font-size:1.3rem;-webkit-text-fill-color:var(--p);}
+header h1{font-family:'Outfit',sans-serif;font-size:clamp(1.9rem,5vw,3.4rem);font-weight:800;line-height:1.15;margin-bottom:.9rem;}
+header h1 span{background:var(--gr);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+header p{color:var(--tm);font-size:1rem;max-width:480px;margin:0 auto 2rem;line-height:1.7;}
+.steps{display:flex;justify-content:center;align-items:center;max-width:580px;margin:0 auto 2.5rem;padding:0 1rem;}
+.si{display:flex;flex-direction:column;align-items:center;gap:.35rem;position:relative;flex:1;}
+.si:not(:last-child)::after{content:'';position:absolute;top:17px;left:60%;width:80%;height:2px;background:var(--border);transition:background .4s;}
+.si.done:not(:last-child)::after{background:var(--p);}
+.sc{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--td);background:var(--bg);transition:all .4s;position:relative;z-index:1;}
+.si.active .sc{border-color:var(--p);background:var(--p);color:#fff;box-shadow:0 0 18px rgba(139,92,246,.55);}
+.si.done .sc{border-color:var(--ok);background:var(--ok);color:#fff;}
+.sl{font-size:.65rem;color:var(--td);font-weight:500;text-align:center;}
+.si.active .sl{color:var(--pl);}.si.done .sl{color:var(--ok);}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:1280px;margin:0 auto;padding:0 2rem 5rem;}
+@media(max-width:880px){.layout{grid-template-columns:1fr;}}
+.card{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:22px;padding:2rem;position:relative;overflow:hidden;transition:border-color .3s;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gr);border-radius:22px 22px 0 0;}
+.card:hover{border-color:var(--glow);}
+.prog{width:100%;height:3px;background:var(--border);border-radius:2px;margin-bottom:1.5rem;overflow:hidden;}
+.progf{height:100%;background:var(--gr);border-radius:2px;transition:width .5s ease;}
+.sc2{display:none;}.sc2.on{display:block;animation:fi .35s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.stitle{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:700;margin-bottom:.25rem;display:flex;align-items:center;gap:.45rem;}
+.stitle i{color:var(--p);}.ssub{color:var(--tm);font-size:.85rem;margin-bottom:1.4rem;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:560px){.row{grid-template-columns:1fr;}}
+.fg{margin-bottom:1.1rem;}
+label{display:block;font-size:.76rem;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.45rem;}
+input,textarea,select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:11px;padding:.7rem .95rem;font-size:.88rem;font-family:'Inter',sans-serif;color:var(--t);outline:none;transition:all .3s;}
+input:focus,textarea:focus,select:focus{border-color:var(--p);background:rgba(139,92,246,.07);box-shadow:0 0 0 3px rgba(139,92,246,.14);}
+input::placeholder,textarea::placeholder{color:var(--td);}
+textarea{resize:vertical;min-height:90px;}
+select option{background:#1e1b4b;}
+.entry{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:15px;padding:1.1rem;margin-bottom:.9rem;transition:border-color .3s;}
+.entry:hover{border-color:rgba(139,92,246,.3);}
+.entry-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem;}
+.entry-label{font-size:.82rem;font-weight:600;color:var(--pl);}
+.btn-rm{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--err);border-radius:8px;padding:.28rem .55rem;font-size:.72rem;cursor:pointer;transition:all .3s;}
+.btn-rm:hover{background:rgba(239,68,68,.2);}
+.tags{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.9rem;min-height:36px;}
+.tag{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:var(--pl);padding:.28rem .7rem;border-radius:20px;font-size:.78rem;font-weight:500;display:flex;align-items:center;gap:.35rem;animation:pop .2s ease;}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.tag button{background:none;border:none;color:var(--pl);cursor:pointer;font-size:.68rem;opacity:.7;transition:opacity .2s;padding:0;}
+.tag button:hover{opacity:1;}
+.skill-row{display:flex;gap:.5rem;}.skill-row input{flex:1;}
+.btn{padding:.75rem 1.6rem;border-radius:11px;font-size:.88rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all .3s;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-p{background:var(--gr);color:#fff;box-shadow:0 4px 18px rgba(139,92,246,.38);}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 7px 26px rgba(139,92,246,.58);}
+.btn-p:active{transform:translateY(0);}
+.btn-s{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tm);}
+.btn-s:hover{background:rgba(255,255,255,.1);color:var(--t);}
+.btn-o{background:transparent;border:1px solid rgba(139,92,246,.4);color:var(--pl);}
+.btn-o:hover{background:rgba(139,92,246,.1);}
+.btn-add{background:rgba(6,182,212,.08);border:1px dashed rgba(6,182,212,.4);color:var(--a);width:100%;justify-content:center;padding:.65rem;border-radius:11px;font-size:.83rem;}
+.btn-add:hover{background:rgba(6,182,212,.18);}
+.btn-gen{background:linear-gradient(135deg,#8b5cf6,#06b6d4,#10b981);background-size:200% 200%;animation:gs 3s ease infinite;color:#fff;font-size:.95rem;padding:.95rem 2rem;border-radius:13px;box-shadow:0 5px 26px rgba(139,92,246,.48);width:100%;justify-content:center;}
+@keyframes gs{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+.btn-gen:hover{transform:translateY(-3px);box-shadow:0 9px 36px rgba(139,92,246,.65);}
+.btn-nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.4rem;gap:.9rem;}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1.2rem;}
+.pcard{background:rgba(255,255,255,.04);border:2px solid var(--border);border-radius:15px;padding:.9rem .4rem;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+.pcard:hover{border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.06);transform:translateY(-2px);}
+.pcard.sel{border-color:var(--p);background:rgba(139,92,246,.12);box-shadow:0 0 18px rgba(139,92,246,.2);}
+.picon{font-size:1.5rem;margin-bottom:.35rem;display:block;color:var(--tm);}
+.pcard.sel .picon{color:var(--pl);}
+.pname{font-size:.78rem;font-weight:700;color:var(--t);margin-bottom:.15rem;}
+.pdesc{font-size:.65rem;color:var(--td);}
+.pbadge{position:absolute;top:5px;right:5px;font-size:.58rem;font-weight:800;letter-spacing:.5px;padding:.12rem .38rem;border-radius:5px;background:rgba(16,185,129,.18);color:var(--ok);border:1px solid rgba(16,185,129,.3);}
+.api-box{background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:15px;padding:1.1rem;margin-bottom:1.3rem;}
+.api-box label{color:var(--pl);}
+.api-row{display:flex;gap:.45rem;align-items:center;}
+.api-row input{flex:1;font-family:monospace;font-size:.83rem;}
+.eye-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tm);border-radius:9px;padding:.7rem;cursor:pointer;transition:all .3s;}
+.eye-btn:hover{background:rgba(255,255,255,.1);color:var(--t);}
+.api-note{font-size:.72rem;color:var(--td);margin-top:.45rem;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;}
+.api-note a{color:var(--pl);}
+.preview-wrap{position:sticky;top:2rem;}
+.abar{display:none;gap:.65rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.abar.on{display:flex;}
+.btn-dl{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 4px 14px rgba(16,185,129,.3);}
+.btn-dl:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(16,185,129,.5);}
+.btn-cp{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tm);}
+.btn-cp:hover{background:rgba(255,255,255,.1);color:var(--t);}
+.pview{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 22px 70px rgba(0,0,0,.55);max-height:83vh;overflow-y:auto;}
+.pview::-webkit-scrollbar{width:4px;}
+.pview::-webkit-scrollbar-thumb{background:var(--p);border-radius:2px;}
+.ph{min-height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;text-align:center;padding:2rem;background:#fff;}
+.ph i{font-size:3.5rem;margin-bottom:1rem;opacity:.25;color:var(--p);}
+.ph h3{color:#334155;margin-bottom:.5rem;font-family:'Outfit',sans-serif;}
+.ph p{color:#64748b;font-size:.88rem;line-height:1.6;}
+#rout{display:none;background:#fff;color:#1e293b;font-family:'Inter',sans-serif;padding:2.2rem 1.8rem;}
+.rh{border-bottom:3px solid #8b5cf6;padding-bottom:1.3rem;margin-bottom:1.3rem;}
+.rname{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:800;color:#0f172a;line-height:1.1;margin-bottom:.25rem;}
+.rtitle{font-size:.95rem;font-weight:600;color:#8b5cf6;margin-bottom:.7rem;}
+.rcontact{display:flex;flex-wrap:wrap;gap:.8rem;font-size:.74rem;color:#64748b;}
+.rcontact span{display:flex;align-items:center;gap:.28rem;}
+.rsec{margin-bottom:1.3rem;}
+.rsec-t{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#8b5cf6;border-bottom:1px solid #e2e8f0;padding-bottom:.35rem;margin-bottom:.85rem;}
+.ri{margin-bottom:.9rem;}
+.ri-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.18rem;}
+.ri-title{font-weight:700;font-size:.88rem;color:#0f172a;}
+.ri-date{font-size:.72rem;color:#94a3b8;white-space:nowrap;}
+.ri-sub{font-size:.8rem;color:#6366f1;font-weight:500;margin-bottom:.35rem;}
+.ri-desc{font-size:.8rem;color:#475569;line-height:1.65;}
+.ri-desc ul{padding-left:1.1rem;margin-top:.25rem;}
+.ri-desc li{margin-bottom:.18rem;}
+.skills-grid{display:flex;flex-wrap:wrap;gap:.35rem;}
+.skill-pill{background:#f1f0ff;color:#6d28d9;border:1px solid #ddd6fe;padding:.18rem .65rem;border-radius:20px;font-size:.72rem;font-weight:500;}
+.rsum{font-size:.82rem;color:#475569;line-height:1.72;}
+.loader{display:none;position:fixed;inset:0;background:rgba(7,7,26,.92);backdrop-filter:blur(12px);z-index:1000;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.loader.on{display:flex;}
+.spin{width:76px;height:76px;border-radius:50%;border:3px solid transparent;border-top-color:var(--p);border-right-color:var(--a);animation:sp 1s linear infinite;margin-bottom:1.8rem;position:relative;}
+.spin::after{content:'';position:absolute;inset:8px;border-radius:50%;border:3px solid transparent;border-bottom-color:var(--a2);animation:sp 1.6s linear infinite reverse;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ltxt{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:700;background:var(--gr);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.4rem;}
+.lsub{color:var(--tm);font-size:.88rem;}
+.ldots::after{content:'';animation:ld 1.4s steps(3,end) infinite;}
+@keyframes ld{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+.toast{position:fixed;bottom:1.8rem;right:1.8rem;background:rgba(15,15,40,.96);border:1px solid var(--glow);backdrop-filter:blur(18px);border-radius:11px;padding:.9rem 1.4rem;font-size:.84rem;font-weight:500;z-index:9999;transform:translateX(220%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);max-width:280px;display:flex;align-items:center;gap:.65rem;}
+.toast.show{transform:translateX(0);}
+.toast.ok{border-color:rgba(16,185,129,.4);}.toast.er{border-color:rgba(239,68,68,.4);}
+.toast i{font-size:1rem;}.toast.ok i{color:var(--ok);}.toast.er i{color:var(--err);}
+footer{text-align:center;padding:2rem 1rem 3rem;color:var(--td);font-size:.78rem;}
+footer a{color:var(--pl);text-decoration:none;}
+@media print{
+  body{background:#fff!important;}body::before{display:none;}
+  header,.steps,.card,.abar,.loader,footer{display:none!important;}
+  .layout{grid-template-columns:1fr;padding:0;}
+  .pview{box-shadow:none;max-height:none;position:static;border-radius:0;overflow:visible;}
+  #rout{display:block!important;padding:.5rem;}.ph{display:none!important;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo"><i class="fas fa-file-alt"></i> ResumeAI</div>
+  <h1>Build Your <span>Perfect Resume</span><br>With AI</h1>
+  <p>Fill in your details, choose your AI, and get a professional resume in seconds. No sign-up needed.</p>
+</header>
+<div class="steps">
+  <div class="si active" id="si1"><div class="sc"><i class="fas fa-user"></i></div><span class="sl">Personal</span></div>
+  <div class="si" id="si2"><div class="sc"><i class="fas fa-briefcase"></i></div><span class="sl">Experience</span></div>
+  <div class="si" id="si3"><div class="sc"><i class="fas fa-graduation-cap"></i></div><span class="sl">Education</span></div>
+  <div class="si" id="si4"><div class="sc"><i class="fas fa-star"></i></div><span class="sl">Skills</span></div>
+  <div class="si" id="si5"><div class="sc"><i class="fas fa-magic"></i></div><span class="sl">Generate</span></div>
+</div>
+<div class="layout">
+  <div>
+  <div class="card">
+    <div class="prog"><div class="progf" id="pf" style="width:20%"></div></div>
+    <div class="sc2 on" id="s1">
+      <div class="stitle"><i class="fas fa-user"></i> Personal Info</div>
+      <div class="ssub">Tell us about yourself</div>
+      <div class="row">
+        <div class="fg"><label>First Name</label><input id="fn" placeholder="John"/></div>
+        <div class="fg"><label>Last Name</label><input id="ln" placeholder="Doe"/></div>
+      </div>
+      <div class="fg"><label>Professional Title</label><input id="jt" placeholder="Senior Software Engineer"/></div>
+      <div class="row">
+        <div class="fg"><label>Email</label><input id="em" type="email" placeholder="john@email.com"/></div>
+        <div class="fg"><label>Phone</label><input id="ph2" placeholder="+1 555 123 4567"/></div>
+      </div>
+      <div class="row">
+        <div class="fg"><label>Location</label><input id="loc" placeholder="New York, USA"/></div>
+        <div class="fg"><label>LinkedIn (optional)</label><input id="li" placeholder="linkedin.com/in/john"/></div>
+      </div>
+      <div class="fg"><label>Website / Portfolio (optional)</label><input id="ws" placeholder="johndoe.com"/></div>
+      <div class="btn-nav"><div></div><button class="btn btn-p" onclick="nxt(1)">Next <i class="fas fa-arrow-right"></i></button></div>
+    </div>
+    <div class="sc2" id="s2">
+      <div class="stitle"><i class="fas fa-briefcase"></i> Work Experience</div>
+      <div class="ssub">Add your work history - most recent first</div>
+      <div id="explist"></div>
+      <button class="btn btn-add" onclick="addExp()"><i class="fas fa-plus"></i> Add Work Experience</button>
+      <div class="btn-nav">
+        <button class="btn btn-s" onclick="bck(2)"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn btn-p" onclick="nxt(2)">Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="sc2" id="s3">
+      <div class="stitle"><i class="fas fa-graduation-cap"></i> Education</div>
+      <div class="ssub">Add your educational background</div>
+      <div id="edulist"></div>
+      <button class="btn btn-add" onclick="addEdu()"><i class="fas fa-plus"></i> Add Education</button>
+      <div class="btn-nav">
+        <button class="btn btn-s" onclick="bck(3)"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn btn-p" onclick="nxt(3)">Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="sc2" id="s4">
+      <div class="stitle"><i class="fas fa-star"></i> Skills and Extras</div>
+      <div class="ssub">What are you good at?</div>
+      <div class="fg">
+        <label>Skills</label>
+        <div class="tags" id="tagbox"></div>
+        <div class="skill-row">
+          <input id="ski" placeholder="Type a skill and press Enter..."/>
+          <button class="btn btn-o" onclick="addSkill()">Add</button>
+        </div>
+      </div>
+      <div class="fg"><label>Languages</label><input id="lang" placeholder="English (Native), Arabic (Native)"/></div>
+      <div class="fg"><label>Certifications (optional)</label><textarea id="certs" placeholder="AWS Certified, Google Analytics..."></textarea></div>
+      <div class="fg"><label>Extra Info (hobbies, volunteer, etc.)</label><textarea id="extra" placeholder="Volunteer at coding bootcamps..."></textarea></div>
+      <div class="btn-nav">
+        <button class="btn btn-s" onclick="bck(4)"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn btn-p" onclick="nxt(4)">Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="sc2" id="s5">
+      <div class="stitle"><i class="fas fa-magic"></i> Generate Resume</div>
+      <div class="ssub">Pick your AI and create your resume!</div>
+      <div class="fg">
+        <label>AI Provider</label>
+        <div class="pgrid">
+          <div class="pcard sel" id="pg" onclick="setProv('gemini')">
+            <span class="pbadge">FREE</span>
+            <i class="fab fa-google picon"></i>
+            <div class="pname">Google Gemini</div>
+            <div class="pdesc">1500 free/day</div>
+          </div>
+          <div class="pcard" id="po" onclick="setProv('openai')">
+            <i class="fas fa-brain picon"></i>
+            <div class="pname">OpenAI GPT</div>
+            <div class="pdesc">Paid account</div>
+          </div>
+          <div class="pcard" id="plc" onclick="setProv('local')">
+            <span class="pbadge">NO API</span>
+            <i class="fas fa-bolt picon"></i>
+            <div class="pname">Local Template</div>
+            <div class="pdesc">Instant and free</div>
+          </div>
+        </div>
+      </div>
+      <div class="api-box" id="apibox">
+        <label id="alab"><i class="fas fa-key"></i> Google Gemini API Key</label>
+        <div class="api-row">
+          <input type="password" id="akey" placeholder="AIza..."/>
+          <button class="eye-btn" onclick="toggleEye()"><i class="fas fa-eye" id="eyeico"></i></button>
+        </div>
+        <div class="api-note" id="anote">
+          <i class="fas fa-lock"></i> Free forever - get your key at
+          <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>
+        </div>
+      </div>
+      <div class="fg"><label>Target Role (optional)</label><input id="tr" placeholder="Software Engineer at a startup"/></div>
+      <div class="fg">
+        <label>Tone / Style</label>
+        <select id="tone">
+          <option value="professional">Professional and Formal</option>
+          <option value="creative">Creative and Dynamic</option>
+          <option value="technical">Technical and Detailed</option>
+          <option value="concise">Concise and Impactful</option>
+        </select>
+      </div>
+      <button class="btn btn-gen" onclick="gen()"><i class="fas fa-magic"></i> Generate My Resume</button>
+      <div class="btn-nav" style="margin-top:1rem;">
+        <button class="btn btn-s" onclick="bck(5)"><i class="fas fa-arrow-left"></i> Back</button>
+        <div></div>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="preview-wrap">
+    <div class="abar" id="abar">
+      <button class="btn btn-dl" onclick="gaEvent('resume_downloaded');window.print()"><i class="fas fa-download"></i> Download PDF</button>
+      <button class="btn btn-cp" onclick="copyTxt()"><i class="fas fa-copy"></i> Copy Text</button>
+      <button class="btn btn-o" onclick="gen()"><i class="fas fa-redo"></i> Regenerate</button>
+    </div>
+    <div class="pview">
+      <div class="ph" id="ph">
+        <i class="fas fa-file-alt"></i>
+        <h3>Resume Preview</h3>
+        <p>Fill in your details and click<br><strong style="color:#8b5cf6">Generate My Resume</strong><br>to see the magic</p>
+      </div>
+      <div id="rout"></div>
+    </div>
+  </div>
+</div>
+<footer>Built with AI - <a href="https://aistudio.google.com/app/apikey" target="_blank">Get Free Gemini API Key</a></footer>
+</div>
+<div class="loader" id="ldr">
+  <div class="spin"></div>
+  <div class="ltxt">Crafting Your Resume</div>
+  <div class="lsub">AI is working its magic<span class="ldots"></span></div>
+</div>
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tmsg"></span></div>
+<script>
+var cur=1,prov='gemini',skills=[],ec=0,dc=0;
+function goStep(n){
+  document.querySelectorAll('.sc2').forEach(function(e){e.classList.remove('on');});
+  document.getElementById('s'+n).classList.add('on');
+  document.querySelectorAll('.si').forEach(function(e,i){
+    e.classList.remove('active','done');
+    if(i+1<n)e.classList.add('done');
+    if(i+1===n)e.classList.add('active');
+  });
+  document.getElementById('pf').style.width=(n/5*100)+'%';
+  cur=n;window.scrollTo({top:0,behavior:'smooth'});
+}
+function nxt(f){if(f===1&&!v1())return;gaEvent('step_completed',{step:f});goStep(f+1);}
+function bck(f){goStep(f-1);}
+function v1(){
+  var fn=document.getElementById('fn').value.trim();
+  var ln=document.getElementById('ln').value.trim();
+  var em=document.getElementById('em').value.trim();
+  if(!fn||!ln){toast('Please enter your full name','er');return false;}
+  if(!em){toast('Please enter your email','er');return false;}
+  return true;
+}
+function addExp(){
+  ec++;var id='ex'+ec;
+  var d=document.createElement('div');d.className='entry';d.id=id;
+  d.innerHTML='<div class="entry-head"><span class="entry-label"><i class="fas fa-briefcase"></i> Experience #'+ec+'</span>'
+    +'<button class="btn-rm" onclick="rmEl(\''+id+'\')"><i class="fas fa-trash"></i> Remove</button></div>'
+    +'<div class="row"><div class="fg"><label>Job Title</label><input class="et" placeholder="Software Engineer"/></div>'
+    +'<div class="fg"><label>Company</label><input class="ecmp" placeholder="Google"/></div></div>'
+    +'<div class="row"><div class="fg"><label>Start</label><input class="es" placeholder="Jan 2022"/></div>'
+    +'<div class="fg"><label>End</label><input class="ee" placeholder="Present"/></div></div>'
+    +'<div class="fg"><label>Location</label><input class="el" placeholder="Cairo, Egypt"/></div>'
+    +'<div class="fg"><label>What did you do? (AI will enhance it)</label><textarea class="ed" placeholder="Managed backend APIs, led a team of 4, improved performance by 30%..."></textarea></div>';
+  document.getElementById('explist').appendChild(d);
+}
+function addEdu(){
+  dc++;var id='du'+dc;
+  var d=document.createElement('div');d.className='entry';d.id=id;
+  d.innerHTML='<div class="entry-head"><span class="entry-label"><i class="fas fa-graduation-cap"></i> Education #'+dc+'</span>'
+    +'<button class="btn-rm" onclick="rmEl(\''+id+'\')"><i class="fas fa-trash"></i> Remove</button></div>'
+    +'<div class="fg"><label>Degree</label><input class="dg" placeholder="Bachelor of Computer Science"/></div>'
+    +'<div class="row"><div class="fg"><label>University</label><input class="ds" placeholder="Cairo University"/></div>'
+    +'<div class="fg"><label>Years</label><input class="dy" placeholder="2018-2022"/></div></div>'
+    +'<div class="fg"><label>Achievements (optional)</label><input class="da" placeholder="GPA 3.8"/></div>';
+  document.getElementById('edulist').appendChild(d);
+}
+function rmEl(id){var e=document.getElementById(id);if(e)e.remove();}
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('ski').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addSkill();}});
+  addExp();addEdu();
+});
+function addSkill(){
+  var i=document.getElementById('ski'),v=i.value.trim();
+  if(!v||skills.includes(v)){i.value='';return;}
+  skills.push(v);renderSkills();i.value='';
+}
+function rmSkill(s){skills=skills.filter(function(x){return x!==s;});renderSkills();}
+function renderSkills(){
+  document.getElementById('tagbox').innerHTML=skills.map(function(s){
+    return '<div class="tag">'+s+'<button onclick="rmSkill(this.parentElement.firstChild.textContent)">&times;</button></div>';
+  }).join('');
+}
+function setProv(p){
+  prov=p;
+  ['pg','po','plc'].forEach(function(id){document.getElementById(id).classList.remove('sel');});
+  document.getElementById(p==='gemini'?'pg':p==='openai'?'po':'plc').classList.add('sel');
+  gaEvent('provider_selected',{provider:p});
+  var box=document.getElementById('apibox');
+  var lab=document.getElementById('alab');
+  var note=document.getElementById('anote');
+  var inp=document.getElementById('akey');
+  if(p==='local'){
+    box.style.display='none';
+  }else if(p==='gemini'){
+    box.style.display='block';
+    lab.innerHTML='<i class="fas fa-key"></i> Google Gemini API Key';
+    inp.placeholder='AIza...';
+    note.innerHTML='<i class="fas fa-lock"></i> Free - get key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>';
+  }else{
+    box.style.display='block';
+    lab.innerHTML='<i class="fas fa-key"></i> OpenAI API Key';
+    inp.placeholder='sk-...';
+    note.innerHTML='<i class="fas fa-lock"></i> Goes directly to OpenAI. <a href="https://platform.openai.com/api-keys" target="_blank">Get key</a>';
+  }
+}
+function toggleEye(){
+  var i=document.getElementById('akey'),ic=document.getElementById('eyeico');
+  if(i.type==='password'){i.type='text';ic.className='fas fa-eye-slash';}
+  else{i.type='password';ic.className='fas fa-eye';}
+}
+function collect(){
+  var exps=Array.from(document.querySelectorAll('#explist .entry')).map(function(b){
+    return{title:(b.querySelector('.et')||{}).value||'',company:(b.querySelector('.ecmp')||{}).value||'',
+      start:(b.querySelector('.es')||{}).value||'',end:(b.querySelector('.ee')||{}).value||'',
+      loc:(b.querySelector('.el')||{}).value||'',desc:(b.querySelector('.ed')||{}).value||''};
+  }).filter(function(e){return e.title||e.company;});
+  var edus=Array.from(document.querySelectorAll('#edulist .entry')).map(function(b){
+    return{deg:(b.querySelector('.dg')||{}).value||'',school:(b.querySelector('.ds')||{}).value||'',
+      year:(b.querySelector('.dy')||{}).value||'',ach:(b.querySelector('.da')||{}).value||''};
+  }).filter(function(e){return e.deg||e.school;});
+  return{
+    p:{fn:document.getElementById('fn').value.trim(),ln:document.getElementById('ln').value.trim(),
+      jt:document.getElementById('jt').value.trim(),em:document.getElementById('em').value.trim(),
+      ph:document.getElementById('ph2').value.trim(),loc:document.getElementById('loc').value.trim(),
+      li:document.getElementById('li').value.trim(),ws:document.getElementById('ws').value.trim()},
+    exps:exps,edus:edus,skills:skills,
+    lang:document.getElementById('lang').value.trim(),
+    certs:document.getElementById('certs').value.trim(),
+    extra:document.getElementById('extra').value.trim(),
+    tr:document.getElementById('tr').value.trim(),
+    tone:document.getElementById('tone').value
+  };
+}
+function buildPrompt(d){
+  var ex=d.exps.map(function(e){return'- '+e.title+' at '+e.company+' ('+e.start+' to '+e.end+'), '+e.loc+': '+e.desc;}).join('\n')||'None';
+  var ed=d.edus.map(function(e){return'- '+e.deg+' from '+e.school+' ('+e.year+')'+(e.ach?': '+e.ach:'');}).join('\n')||'None';
+  return 'You are an expert resume writer. Return valid JSON only, no markdown fences.\n\nName: '+d.p.fn+' '+d.p.ln+'\nTitle: '+d.p.jt+'\nEmail: '+d.p.em+'\nPhone: '+d.p.ph+'\nLocation: '+d.p.loc+'\nLinkedIn: '+d.p.li+'\nWebsite: '+d.p.ws+'\n\nEXPERIENCE:\n'+ex+'\n\nEDUCATION:\n'+ed+'\n\nSKILLS: '+(d.skills.join(', ')||'None')+'\nLANGUAGES: '+(d.lang||'None')+'\nCERTIFICATIONS: '+(d.certs||'None')+'\nEXTRA: '+(d.extra||'None')+'\nTARGET ROLE: '+(d.tr||'General')+'\nTONE: '+d.tone+'\n\nWrite a 3-4 sentence professional summary. Add 3-4 strong bullet points per job. Return ONLY this JSON:\n{"summary":"","experiences":[{"title":"","company":"","period":"","location":"","bullets":[]}],"education":[{"degree":"","school":"","year":"","note":""}],"skills":[],"languages":"","certifications":""}';
+}
+async function gen(){
+  var d=collect();
+  if(!d.p.fn){toast('Please complete Step 1 first','er');return;}
+  if(prov==='local'){
+    setLoader(true);
+    setTimeout(function(){
+      try{renderResume(d.p,buildLocal(d));toast('Resume created instantly!','ok');gaEvent('resume_generated',{method:'local',tone:d.tone});}
+      catch(e){toast('Error: '+e.message,'er');}
+      finally{setLoader(false);}
+    },700);
+    return;
+  }
+  var key=document.getElementById('akey').value.trim();
+  if(!key){toast('Enter your API key - or pick Local Template (no key needed)','er');return;}
+  setLoader(true);
+  try{
+    var prompt=buildPrompt(d),txt;
+    if(prov==='gemini'){
+      var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:2000}})
+      });
+      if(!r.ok){var je=await r.json();throw new Error((je.error&&je.error.message)||'Gemini error. Check your API key.');}
+      var j=await r.json();txt=j.candidates[0].content.parts[0].text.trim();
+    }else{
+      if(!key.startsWith('sk-')){toast('Invalid OpenAI key format','er');setLoader(false);return;}
+      var r=await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'system',content:'You are a resume writer. Return valid JSON only, no markdown.'},{role:'user',content:prompt}],temperature:0.7,max_tokens:2000})
+      });
+      if(!r.ok){var je=await r.json();throw new Error((je.error&&je.error.message)||'OpenAI error');}
+      var j=await r.json();txt=j.choices[0].message.content.trim();
+    }
+    txt=txt.replace(/^```json\n?/,'').replace(/^```\n?/,'').replace(/\n?```$/,'').trim();
+    renderResume(d.p,JSON.parse(txt));
+    toast('Resume generated!','ok');
+    gaEvent('resume_generated',{method:prov,tone:d.tone});
+  }catch(e){console.error(e);toast('Error: '+e.message,'er');}
+  finally{setLoader(false);}
+}
+function buildLocal(d){
+  var adj={professional:'results-driven',creative:'innovative and creative',technical:'technically skilled',concise:'accomplished'}[d.tone]||'experienced';
+  var sk=d.skills.length?' with expertise in '+d.skills.slice(0,3).join(', '):'';
+  var tr=d.tr?' targeting '+d.tr:'';
+  var summary=d.p.fn+' '+d.p.ln+' is a '+adj+' '+(d.p.jt||'professional')+sk+tr+'. Proven track record of delivering high-quality results in fast-paced environments. Committed to continuous growth and bringing measurable value to every role. Skilled at cross-functional collaboration and driving impactful outcomes.';
+  var tpls=[
+    ['Led end-to-end project delivery on time and within budget','Collaborated with cross-functional teams to streamline processes','Analyzed performance metrics to guide data-driven decisions'],
+    ['Developed solutions that improved team efficiency by 25%','Drove initiatives contributing directly to business growth','Built strong stakeholder relationships to align on strategic goals']
+  ];
+  var exps=d.exps.map(function(e,i){
+    var bl=[];
+    if(e.desc&&e.desc.trim()){
+      bl=e.desc.split(/[.\n]+/).filter(function(s){return s.trim().length>10;}).slice(0,3).map(function(s){
+        s=s.trim();return s.charAt(0).toUpperCase()+s.slice(1)+(s.endsWith('.')?'':'.');
+      });
+    }
+    if(bl.length<2)bl=tpls[i%2];
+    return{title:e.title||'Professional',company:e.company||'Company',period:(e.start||'')+(e.end?' - '+e.end:''),location:e.loc||'',bullets:bl};
+  });
+  var edus=d.edus.map(function(e){return{degree:e.deg||'Degree',school:e.school||'Institution',year:e.year||'',note:e.ach||''};});
+  return{summary:summary,experiences:exps,education:edus,skills:d.skills,languages:d.lang||'',certifications:d.certs||''};
+}
+function renderResume(p,ai){
+  var rout=document.getElementById('rout');
+  var contact=[
+    p.em?'<span><i class="fas fa-envelope"></i> '+p.em+'</span>':'',
+    p.ph?'<span><i class="fas fa-phone"></i> '+p.ph+'</span>':'',
+    p.loc?'<span><i class="fas fa-map-marker-alt"></i> '+p.loc+'</span>':'',
+    p.li?'<span><i class="fab fa-linkedin"></i> '+p.li+'</span>':'',
+    p.ws?'<span><i class="fas fa-globe"></i> '+p.ws+'</span>':''
+  ].filter(Boolean).join('');
+  var expH=(ai.experiences||[]).map(function(e){
+    return '<div class="ri"><div class="ri-h"><div class="ri-title">'+e.title+'</div><div class="ri-date">'+(e.period||'')+'</div></div>'
+      +'<div class="ri-sub">'+e.company+(e.location?' - '+e.location:'')+'</div>'
+      +'<div class="ri-desc"><ul>'+(e.bullets||[]).map(function(b){return'<li>'+b+'</li>';}).join('')+'</ul></div></div>';
+  }).join('');
+  var eduH=(ai.education||[]).map(function(e){
+    return '<div class="ri"><div class="ri-h"><div class="ri-title">'+e.degree+'</div><div class="ri-date">'+(e.year||'')+'</div></div>'
+      +'<div class="ri-sub">'+e.school+'</div>'+(e.note?'<div class="ri-desc">'+e.note+'</div>':'')+'</div>';
+  }).join('');
+  var skH=(ai.skills||[]).map(function(s){return'<span class="skill-pill">'+s+'</span>';}).join('');
+  rout.innerHTML='<div class="rh"><div class="rname">'+p.fn+' '+p.ln+'</div>'+(p.jt?'<div class="rtitle">'+p.jt+'</div>':'')+'<div class="rcontact">'+contact+'</div></div>'
+    +(ai.summary?'<div class="rsec"><div class="rsec-t">Professional Summary</div><div class="rsum">'+ai.summary+'</div></div>':'')
+    +(expH?'<div class="rsec"><div class="rsec-t">Work Experience</div>'+expH+'</div>':'')
+    +(eduH?'<div class="rsec"><div class="rsec-t">Education</div>'+eduH+'</div>':'')
+    +(skH?'<div class="rsec"><div class="rsec-t">Skills</div><div class="skills-grid">'+skH+'</div></div>':'')
+    +(ai.languages?'<div class="rsec"><div class="rsec-t">Languages</div><div class="rsum">'+ai.languages+'</div></div>':'')
+    +(ai.certifications?'<div class="rsec"><div class="rsec-t">Certifications</div><div class="rsum">'+ai.certifications+'</div></div>':'');
+  document.getElementById('ph').style.display='none';
+  rout.style.display='block';
+  document.getElementById('abar').classList.add('on');
+}
+function setLoader(v){document.getElementById('ldr').classList.toggle('on',v);}
+function copyTxt(){
+  navigator.clipboard.writeText(document.getElementById('rout').innerText).then(function(){
+    toast('Copied to clipboard!','ok');gaEvent('copy_resume');
+  });
+}
+function toast(msg,type){
+  type=type||'ok';
+  var t=document.getElementById('toast'),s=document.getElementById('tmsg');
+  s.textContent=msg;t.className='toast '+type;
+  t.querySelector('i').className=type==='ok'?'fas fa-check-circle':'fas fa-exclamation-circle';
+  t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3500);
+}
+</script>
+</body>
+</html>
