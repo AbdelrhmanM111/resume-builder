@@ -625,55 +625,47 @@ function downloadPDF(mode) {
   // Find which document is currently active (Resume or Cover Letter)
   var activeEl = document.getElementById('rout').style.display !== 'none' ? document.getElementById('rout') : document.getElementById('cout');
   var isResume = activeEl.id === 'rout';
-  
   var fnName = document.getElementById('fn').value.trim() || 'User';
   var fileName = fnName.replace(/\s+/g, '_') + (isResume ? '_Resume.pdf' : '_Cover_Letter.pdf');
   
   toast(mode === 'preview' ? 'Generating PDF Preview...' : 'Generating high-quality PDF...', 'ok');
   
-  // Fix html2canvas cutoff issue by temporarily removing max-height constraints from the parent container
-  var pview = document.querySelector('.pview');
-  var origMaxHeight = pview.style.maxHeight;
-  var origOverflow = pview.style.overflowY;
-  pview.style.maxHeight = 'none';
-  pview.style.overflowY = 'visible';
-
-  // Temporarily force the element to be a standard A4 width so the PDF looks perfect
-  activeEl.classList.add('pdf-mode');
+  // Bulletproof PDF Fix: Clone the active element to body to escape all scrollbars & UI containers
+  var clone = activeEl.cloneNode(true);
+  clone.id = 'pdf-clone';
+  clone.style.position = 'absolute';
+  clone.style.top = '-9999px';
+  clone.style.left = '-9999px';
+  clone.style.display = 'block';
+  // Copy necessary classes
+  clone.className = activeEl.className + ' pdf-mode';
+  document.body.appendChild(clone);
 
   var opt = {
     margin:       10, // 10mm margin
     filename:     fileName,
-    image:        { type: 'jpeg', quality: 0.98 },
+    image:        { type: 'jpeg', quality: 1.0 },
     html2canvas:  { scale: 2, useCORS: true, logging: false },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   
-  var worker = html2pdf().set(opt).from(activeEl);
+  var worker = html2pdf().set(opt).from(clone);
   
   if (mode === 'preview') {
     worker.output('bloburl').then(function(url) {
-      activeEl.classList.remove('pdf-mode');
-      pview.style.maxHeight = origMaxHeight;
-      pview.style.overflowY = origOverflow;
+      document.body.removeChild(clone);
       window.open(url, '_blank');
       toast('Preview opened in new tab!', 'ok');
     }).catch(function(err){
-      activeEl.classList.remove('pdf-mode');
-      pview.style.maxHeight = origMaxHeight;
-      pview.style.overflowY = origOverflow;
+      document.body.removeChild(clone);
       toast('Error generating PDF preview', 'er');
     });
   } else {
     worker.save().then(function(){
-      activeEl.classList.remove('pdf-mode');
-      pview.style.maxHeight = origMaxHeight;
-      pview.style.overflowY = origOverflow;
+      document.body.removeChild(clone);
       toast('PDF Download Complete!', 'ok');
     }).catch(function(err){
-      activeEl.classList.remove('pdf-mode');
-      pview.style.maxHeight = origMaxHeight;
-      pview.style.overflowY = origOverflow;
+      document.body.removeChild(clone);
       toast('Error generating PDF', 'er');
     });
   }
