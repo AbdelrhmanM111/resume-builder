@@ -650,71 +650,89 @@ let currentPdfFileName = '';
 
 function downloadPDF(mode) {
   gaEvent(mode === 'preview' ? 'resume_preview_pdf' : 'resume_downloaded_pdf');
-  
-  // Find which document is currently active (Resume or Cover Letter)
-  var activeEl = document.getElementById('rout').style.display !== 'none' ? document.getElementById('rout') : document.getElementById('cout');
+
+  var activeEl = document.getElementById('rout').style.display !== 'none'
+    ? document.getElementById('rout')
+    : document.getElementById('cout');
   var isResume = activeEl.id === 'rout';
   var fnName = document.getElementById('fn').value.trim() || 'User';
   var fileName = fnName.replace(/\s+/g, '_') + (isResume ? '_Resume.pdf' : '_Cover_Letter.pdf');
-  
-  toast(mode === 'preview' ? 'Generating PDF Preview...' : 'Generating high-quality PDF...', 'ok');
-  
-  // Bulletproof PDF Fix: Clone the active element to body to escape all scrollbars & UI containers
+
+  toast(mode === 'preview' ? 'Generating PDF Preview...' : 'Generating PDF...', 'ok');
+
+  // Step 1: Clone and append to body with visibility:hidden (NOT off-screen)
+  // This lets the browser fully paint/reflow it so scrollHeight is accurate
   var clone = activeEl.cloneNode(true);
   clone.id = 'pdf-clone';
-  clone.style.position = 'absolute';
-  clone.style.top = '-9999px';
-  clone.style.left = '-9999px';
-  clone.style.display = 'block';
-  // Copy necessary classes
   clone.className = activeEl.className + ' pdf-mode';
+  clone.style.position = 'fixed';
+  clone.style.top = '0';
+  clone.style.left = '0';
+  clone.style.zIndex = '-9999';
+  clone.style.visibility = 'hidden';
+  clone.style.pointerEvents = 'none';
   document.body.appendChild(clone);
 
-  // Dynamic Fit-to-One-Page algorithm:
-  // If the resume slightly exceeds 1 page (up to 40% over), we dynamically widen the container.
-  // Since html2pdf always scales the image to fit the A4 page width, a wider container 
-  // gets scaled down more, perfectly squeezing the overflow into a single page!
-  var contentHeight = clone.scrollHeight;
-  var targetRatio = 277 / 190; // Usable A4 ratio with 10mm margins
-  var currentRatio = contentHeight / 800; // Base width is 800px
+  // Step 2: Wait for browser to paint, THEN measure and generate PDF
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
 
-  if (currentRatio > targetRatio && currentRatio < (targetRatio * 1.4)) {
-      var newWidth = contentHeight / targetRatio;
-      clone.style.width = Math.ceil(newWidth) + 'px';
-  }
+      // Dynamic Fit-to-One-Page:
+      // A4 usable area is ~277mm tall x 190mm wide (with 10mm margins).
+      // Our canvas is 800px wide. The usable height in pixels is 800 * (277/190) = ~1168px.
+      // If content is slightly taller than that (up to 140% of one page), widen the container
+      // so html2pdf scales it down to fit perfectly on one page.
+      var contentHeight = clone.scrollHeight;
+      var onePageHeight = 800 * (277 / 190); // ~1168px
 
-  var opt = {
-    margin:       10, // 10mm margin
-    filename:     fileName,
-    image:        { type: 'jpeg', quality: 1.0 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  
-  var worker = html2pdf().set(opt).from(clone);
-  
-  if (mode === 'preview') {
-    worker.output('blob').then(function(blob) {
-      document.body.removeChild(clone);
-      currentPdfBlob = blob;
-      currentPdfFileName = fileName;
-      var url = URL.createObjectURL(blob);
-      document.getElementById('pdfIframe').src = url;
-      document.getElementById('pdfModal').classList.add('on');
-      toast('Preview generated!', 'ok');
-    }).catch(function(err){
-      document.body.removeChild(clone);
-      toast('Error generating PDF preview', 'er');
+      if (contentHeight > onePageHeight && contentHeight < onePageHeight * 1.4) {
+        var newWidth = Math.ceil(contentHeight / (277 / 190));
+        clone.style.width = newWidth + 'px';
+      }
+
+      var opt = {
+        margin:      10,
+        filename:    fileName,
+        image:       { type: 'jpeg', quality: 1.0 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      function cleanup() {
+        if (document.getElementById('pdf-clone')) {
+          document.body.removeChild(clone);
+        }
+      }
+
+      var worker = html2pdf().set(opt).from(clone);
+
+      if (mode === 'preview') {
+        worker.output('blob').then(function(blob) {
+          cleanup();
+          currentPdfBlob = blob;
+          currentPdfFileName = fileName;
+          var url = URL.createObjectURL(blob);
+          document.getElementById('pdfIframe').src = url;
+          document.getElementById('pdfModal').classList.add('on');
+          toast('Preview ready!', 'ok');
+        }).catch(function(err) {
+          cleanup();
+          console.error(err);
+          toast('Error generating PDF preview', 'er');
+        });
+      } else {
+        worker.save().then(function() {
+          cleanup();
+          toast('PDF Downloaded!', 'ok');
+        }).catch(function(err) {
+          cleanup();
+          console.error(err);
+          toast('Error generating PDF', 'er');
+        });
+      }
+
     });
-  } else {
-    worker.save().then(function(){
-      document.body.removeChild(clone);
-      toast('PDF Download Complete!', 'ok');
-    }).catch(function(err){
-      document.body.removeChild(clone);
-      toast('Error generating PDF', 'er');
-    });
-  }
+  });
 }
 
 function closePdfModal() {
