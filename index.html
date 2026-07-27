@@ -518,21 +518,7 @@ function collect(){
 }
 
 async function gen(){
-  // --- FRONTEND RATE LIMITING (Anti-Spam) ---
-  var today = new Date().toDateString();
-  var lastAttemptDate = localStorage.getItem('rg_gen_date');
-  var attempts = parseInt(localStorage.getItem('rg_gen_attempts') || '0');
-  
-  if (lastAttemptDate !== today) {
-    attempts = 0;
-    localStorage.setItem('rg_gen_date', today);
-  }
-  
-  if (attempts >= 3) {
-    toast('Daily free preview limit reached (3/3). Please try again tomorrow!', 'er');
-    return;
-  }
-  // ------------------------------------------
+
 
   var d=collect();
   if(!d.p.fn){toast('Please complete Step 1 first','er');return;}
