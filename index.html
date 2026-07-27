@@ -8,6 +8,8 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='15' y='5' width='70' height='90' rx='8' fill='%231e293b' stroke='%238b5cf6' stroke-width='4'/%3E%3Ccircle cx='50' cy='45' r='18' fill='%230ea5e9'/%3E%3Ccircle cx='43' cy='42' r='4' fill='white'/%3E%3Ccircle cx='57' cy='42' r='4' fill='white'/%3E%3Cpath d='M40 52 Q50 60 60 52' stroke='white' stroke-width='3' fill='transparent' stroke-linecap='round'/%3E%3Cline x1='30' y1='75' x2='70' y2='75' stroke='%238b5cf6' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='30' y1='85' x2='60' y2='85' stroke='%238b5cf6' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<!-- html2pdf for direct PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZYKZNQ290T"></script>
 <script>
@@ -661,43 +663,8 @@ function switchTab(tab) {
   }
 }
 
-let currentPdfHtml = '';
+let currentPdfBlob = null;
 let currentPdfFileName = '';
-
-function getPdfStyles() {
-  // Collect all inline <style> content from the page to inject into print window
-  var styles = '';
-  document.querySelectorAll('style').forEach(function(s){ styles += s.innerHTML; });
-  // Add print-specific overrides
-  styles += `
-    @page { size: A4; margin: 15mm; }
-    body { margin: 0; padding: 0; background: #fff !important; font-family: 'Inter', sans-serif; }
-    #resume-print { width: 100%; max-width: 100%; box-shadow: none !important; border: none !important; background: #fff !important; color: #000 !important; }
-    .rh { background: #fff !important; border-bottom: 2px solid #000 !important; padding: 0 0 1rem 0 !important; margin-bottom: 1.5rem !important; }
-    .rname { color: #000 !important; font-size: 1.8rem !important; }
-    .rtitle { color: #333 !important; }
-    .rcontact { color: #333 !important; }
-    .rsec-t { color: #000 !important; border-color: #000 !important; }
-    .ri-sub { color: #333 !important; }
-    .skill-pill { background: #eee !important; color: #000 !important; border-color: #ccc !important; }
-    .rsum, .ri-desc { color: #222 !important; }
-    .ri-date { color: #555 !important; }
-    .template-modern .rh { background: #1e293b !important; padding: 1.5rem !important; }
-    .template-modern .rname { color: #fff !important; }
-    .template-modern .rtitle { color: #7dd3fc !important; }
-    .template-modern .rcontact { color: #cbd5e1 !important; }
-    .template-modern .main-col { float: left; width: 65%; padding: 1.5rem; box-sizing: border-box; }
-    .template-modern .side-col { float: right; width: 35%; background: #f8fafc !important; padding: 1.5rem; box-sizing: border-box; border-left: 1px solid #e2e8f0; }
-    .template-modern::after { content: ''; display: table; clear: both; }
-  `;
-  return styles;
-}
-
-function buildPrintWindow(htmlContent, title, forPreview) {
-  var styles = getPdfStyles();
-  var googleFonts = '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>';
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8">${googleFonts}<title>${title}</title><style>${styles}</style></head><body><div id="resume-print">${htmlContent}</div>${forPreview ? '' : '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};}<\/script>'}</body></html>`;
-}
 
 function downloadPDF(mode) {
   gaEvent(mode === 'preview' ? 'resume_preview_pdf' : 'resume_downloaded_pdf');
@@ -705,33 +672,80 @@ function downloadPDF(mode) {
   var activeEl = document.getElementById('rout').style.display !== 'none'
     ? document.getElementById('rout')
     : document.getElementById('cout');
-  var fnName = document.getElementById('fn').value.trim() || 'User';
   var isResume = activeEl.id === 'rout';
-  var title = fnName + (isResume ? ' - Resume' : ' - Cover Letter');
-  currentPdfFileName = fnName.replace(/\s+/g, '_') + (isResume ? '_Resume.pdf' : '_Cover_Letter.pdf');
-  currentPdfHtml = activeEl.innerHTML;
-  activeEl.className;
+  var fnName = document.getElementById('fn').value.trim() || 'User';
+  var fileName = fnName.replace(/\s+/g, '_') + (isResume ? '_Resume.pdf' : '_Cover_Letter.pdf');
 
-  if (mode === 'preview') {
-    // Show the HTML directly in the modal iframe — 100% accurate preview
-    var previewDoc = buildPrintWindow(currentPdfHtml, title, true);
-    var blob = new Blob([previewDoc], { type: 'text/html' });
-    var url = URL.createObjectURL(blob);
-    document.getElementById('pdfIframe').src = url;
-    document.getElementById('pdfModal').classList.add('on');
-    toast('Preview ready!', 'ok');
-  } else {
-    // Open a hidden print window — browser renders it perfectly as PDF
-    var printDoc = buildPrintWindow(currentPdfHtml, title, false);
-    var printWin = window.open('', '_blank', 'width=800,height=1000');
-    if (!printWin) {
-      toast('Please allow popups for this site to download PDF', 'er');
-      return;
-    }
-    printWin.document.write(printDoc);
-    printWin.document.close();
-    toast('PDF print dialog opening...', 'ok');
-  }
+  toast(mode === 'preview' ? 'Generating PDF Preview...' : 'Generating PDF...', 'ok');
+
+  // Step 1: Clone and append to body with visibility:hidden (NOT off-screen)
+  var clone = activeEl.cloneNode(true);
+  clone.id = 'pdf-clone';
+  clone.className = activeEl.className + ' pdf-mode';
+  clone.style.position = 'fixed';
+  clone.style.top = '0';
+  clone.style.left = '0';
+  clone.style.zIndex = '-9999';
+  clone.style.visibility = 'hidden';
+  clone.style.pointerEvents = 'none';
+  document.body.appendChild(clone);
+
+  // Step 2: Wait for browser to paint, THEN measure and generate PDF
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+
+      // Dynamic Fit-to-One-Page:
+      var contentHeight = clone.scrollHeight;
+      var onePageHeight = 800 * (277 / 190); // ~1168px
+
+      if (contentHeight > onePageHeight && contentHeight < onePageHeight * 1.4) {
+        var newWidth = Math.ceil(contentHeight / (277 / 190));
+        clone.style.width = newWidth + 'px';
+      }
+
+      var opt = {
+        margin:      10,
+        filename:    fileName,
+        image:       { type: 'jpeg', quality: 1.0 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      function cleanup() {
+        if (document.getElementById('pdf-clone')) {
+          document.body.removeChild(clone);
+        }
+      }
+
+      var worker = html2pdf().set(opt).from(clone);
+
+      if (mode === 'preview') {
+        worker.output('blob').then(function(blob) {
+          cleanup();
+          currentPdfBlob = blob;
+          currentPdfFileName = fileName;
+          var url = URL.createObjectURL(blob);
+          document.getElementById('pdfIframe').src = url;
+          document.getElementById('pdfModal').classList.add('on');
+          toast('Preview ready!', 'ok');
+        }).catch(function(err) {
+          cleanup();
+          console.error(err);
+          toast('Error generating PDF preview', 'er');
+        });
+      } else {
+        worker.save().then(function() {
+          cleanup();
+          toast('PDF Downloaded!', 'ok');
+        }).catch(function(err) {
+          cleanup();
+          console.error(err);
+          toast('Error generating PDF', 'er');
+        });
+      }
+
+    });
+  });
 }
 
 function closePdfModal() {
@@ -740,20 +754,13 @@ function closePdfModal() {
 }
 
 function downloadFromModal() {
-  // Download = open print window from modal
-  var activeEl = document.getElementById('rout').style.display !== 'none'
-    ? document.getElementById('rout')
-    : document.getElementById('cout');
-  var fnName = document.getElementById('fn').value.trim() || 'User';
-  var isResume = activeEl.id === 'rout';
-  var title = fnName + (isResume ? ' - Resume' : ' - Cover Letter');
-  var printDoc = buildPrintWindow(activeEl.innerHTML, title, false);
-  var printWin = window.open('', '_blank', 'width=800,height=1000');
-  if (!printWin) { toast('Please allow popups for this site', 'er'); return; }
-  printWin.document.write(printDoc);
-  printWin.document.close();
+  if(!currentPdfBlob) return;
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(currentPdfBlob);
+  link.download = currentPdfFileName;
+  link.click();
   closePdfModal();
-  toast('Print dialog opening — save as PDF!', 'ok');
+  toast('PDF Downloaded!', 'ok');
 }
 
 function setLoader(v){document.getElementById('ldr').classList.toggle('on',v);}
