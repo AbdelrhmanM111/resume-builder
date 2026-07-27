@@ -668,14 +668,16 @@ function downloadPDF(mode) {
   var clone = activeEl.cloneNode(true);
   clone.id = 'pdf-clone';
   clone.className = activeEl.className + ' pdf-mode';
-  clone.style.position = 'absolute';
-  clone.style.top = '0';
+  
+  // CRITICAL FIX: html2canvas completely ignores visibility:hidden, display:none, and opacity:0.
+  // To hide the clone from the user while keeping it 100% visible to the PDF engine,
+  // we position it fixed, far below the visible screen bottom (200vh).
+  clone.style.position = 'fixed';
+  clone.style.top = '200vh';
   clone.style.left = '0';
   clone.style.zIndex = '-9999';
-  // CRITICAL FIX: html2canvas ignores visibility:hidden or display:none. 
-  // It MUST be visible to render, so we just push it behind the page.
   clone.style.visibility = 'visible';
-  clone.style.opacity = '0.01'; // Practically invisible to the user but visible to the renderer
+  clone.style.opacity = '1'; 
   clone.style.pointerEvents = 'none';
   document.body.appendChild(clone);
 
