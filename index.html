@@ -678,15 +678,18 @@ function downloadPDF(mode) {
 
   toast(mode === 'preview' ? 'Generating PDF Preview...' : 'Generating PDF...', 'ok');
 
-  // Step 1: Clone and append to body with visibility:hidden (NOT off-screen)
+  // Step 1: Clone and append to body for PDF capture
   var clone = activeEl.cloneNode(true);
   clone.id = 'pdf-clone';
   clone.className = activeEl.className + ' pdf-mode';
-  clone.style.position = 'fixed';
+  clone.style.position = 'absolute';
   clone.style.top = '0';
   clone.style.left = '0';
   clone.style.zIndex = '-9999';
-  clone.style.visibility = 'hidden';
+  // CRITICAL FIX: html2canvas ignores visibility:hidden or display:none. 
+  // It MUST be visible to render, so we just push it behind the page.
+  clone.style.visibility = 'visible';
+  clone.style.opacity = '0.01'; // Practically invisible to the user but visible to the renderer
   clone.style.pointerEvents = 'none';
   document.body.appendChild(clone);
 
