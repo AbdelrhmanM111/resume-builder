@@ -137,14 +137,15 @@ select option{background:#1e1b4b;}
 .skill-pill{background:#f1f0ff;color:#6d28d9;border:1px solid #ddd6fe;padding:.18rem .65rem;border-radius:20px;font-size:.72rem;font-weight:500;}
 .rsum{font-size:.82rem;color:#475569;line-height:1.72;}
 
-/* --- Template: Modern --- */
-.template-modern { display: grid; grid-template-columns: 2fr 1fr; padding: 0 !important; }
-.template-modern .rh { grid-column: 1 / -1; background: #0f172a; color: #fff; padding: 2rem; margin: 0; border: none; }
+/* --- Template: Modern (Float layout for perfect PDF generation) --- */
+.template-modern { display: block; overflow: hidden; padding: 0 !important; }
+.template-modern .rh { display: block; width: 100%; background: #0f172a; color: #fff; padding: 2rem; margin: 0; border: none; box-sizing: border-box; }
 .template-modern .rname { color: #fff; font-size: 2.2rem; }
 .template-modern .rtitle { color: #38bdf8; }
 .template-modern .rcontact { color: #cbd5e1; }
-.template-modern .main-col { padding: 2rem; }
-.template-modern .side-col { background: #f8fafc; padding: 2rem; border-left: 1px solid #e2e8f0; }
+.template-modern .main-col { float: left; width: 66.666%; padding: 2rem; box-sizing: border-box; }
+.template-modern .side-col { float: right; width: 33.333%; background: #f8fafc; padding: 2rem; border-left: 1px solid #e2e8f0; box-sizing: border-box; min-height: 100%; }
+.template-modern::after { content: ""; display: table; clear: both; }
 .template-modern .rsec-t { color: #0ea5e9; border-color: #cbd5e1; }
 .template-modern .ri-sub { color: #0284c7; }
 .template-modern .skill-pill { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
@@ -186,6 +187,18 @@ footer{text-align:center;padding:2rem 1rem 3rem;color:var(--td);font-size:.78rem
 .pdf-mode { width: 800px; padding: 20px; box-sizing: border-box; }
 .template-modern.pdf-mode { padding: 0 !important; width: 800px; }
 .template-minimalist.pdf-mode { padding: 40px !important; width: 800px; }
+
+/* Modal for PDF Preview */
+.pdf-modal{display:none;position:fixed;inset:0;background:rgba(7,7,26,.92);backdrop-filter:blur(12px);z-index:9999;align-items:center;justify-content:center;padding:1rem;}
+.pdf-modal.on{display:flex;}
+.pdf-modal-content{background:var(--bg);border:1px solid var(--border);border-radius:15px;width:100%;max-width:900px;height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+.pdf-modal-head{padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--card);}
+.pdf-modal-head h3{font-size:1.1rem;color:var(--t);}
+.pdf-modal-head button{background:none;border:none;color:var(--tm);font-size:1.2rem;cursor:pointer;}
+.pdf-modal-head button:hover{color:var(--err);}
+.pdf-modal iframe{flex:1;width:100%;border:none;background:#fff;}
+.pdf-modal-foot{padding:1rem 1.5rem;display:flex;justify-content:flex-end;gap:1rem;border-top:1px solid var(--border);background:var(--card);}
+
 </style>
 </head>
 <body>
@@ -348,6 +361,19 @@ footer{text-align:center;padding:2rem 1rem 3rem;color:var(--td);font-size:.78rem
 </div>
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tmsg"></span></div>
 
+<div class="pdf-modal" id="pdfModal">
+  <div class="pdf-modal-content">
+    <div class="pdf-modal-head">
+      <h3><i class="fas fa-file-pdf"></i> PDF Preview</h3>
+      <button onclick="closePdfModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <iframe id="pdfIframe"></iframe>
+    <div class="pdf-modal-foot">
+      <button class="btn btn-s" onclick="closePdfModal()">Close</button>
+      <button class="btn btn-dl" onclick="downloadFromModal()"><i class="fas fa-download"></i> Download Now</button>
+    </div>
+  </div>
+</div>
 <script>
 // --- GLOBAL WORKER URL ---
 const WORKER_URL = 'https://resumegenius-api.abdelrhmanm2.workers.dev';
@@ -619,6 +645,9 @@ function switchTab(tab) {
   }
 }
 
+let currentPdfBlob = null;
+let currentPdfFileName = '';
+
 function downloadPDF(mode) {
   gaEvent(mode === 'preview' ? 'resume_preview_pdf' : 'resume_downloaded_pdf');
   
@@ -641,6 +670,19 @@ function downloadPDF(mode) {
   clone.className = activeEl.className + ' pdf-mode';
   document.body.appendChild(clone);
 
+  // Dynamic Fit-to-One-Page algorithm:
+  // If the resume slightly exceeds 1 page (up to 40% over), we dynamically widen the container.
+  // Since html2pdf always scales the image to fit the A4 page width, a wider container 
+  // gets scaled down more, perfectly squeezing the overflow into a single page!
+  var contentHeight = clone.scrollHeight;
+  var targetRatio = 277 / 190; // Usable A4 ratio with 10mm margins
+  var currentRatio = contentHeight / 800; // Base width is 800px
+
+  if (currentRatio > targetRatio && currentRatio < (targetRatio * 1.4)) {
+      var newWidth = contentHeight / targetRatio;
+      clone.style.width = Math.ceil(newWidth) + 'px';
+  }
+
   var opt = {
     margin:       10, // 10mm margin
     filename:     fileName,
@@ -652,10 +694,14 @@ function downloadPDF(mode) {
   var worker = html2pdf().set(opt).from(clone);
   
   if (mode === 'preview') {
-    worker.output('bloburl').then(function(url) {
+    worker.output('blob').then(function(blob) {
       document.body.removeChild(clone);
-      window.open(url, '_blank');
-      toast('Preview opened in new tab!', 'ok');
+      currentPdfBlob = blob;
+      currentPdfFileName = fileName;
+      var url = URL.createObjectURL(blob);
+      document.getElementById('pdfIframe').src = url;
+      document.getElementById('pdfModal').classList.add('on');
+      toast('Preview generated!', 'ok');
     }).catch(function(err){
       document.body.removeChild(clone);
       toast('Error generating PDF preview', 'er');
@@ -669,6 +715,21 @@ function downloadPDF(mode) {
       toast('Error generating PDF', 'er');
     });
   }
+}
+
+function closePdfModal() {
+  document.getElementById('pdfModal').classList.remove('on');
+  document.getElementById('pdfIframe').src = '';
+}
+
+function downloadFromModal() {
+  if(!currentPdfBlob) return;
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(currentPdfBlob);
+  link.download = currentPdfFileName;
+  link.click();
+  closePdfModal();
+  toast('PDF Downloaded!', 'ok');
 }
 
 function setLoader(v){document.getElementById('ldr').classList.toggle('on',v);}
