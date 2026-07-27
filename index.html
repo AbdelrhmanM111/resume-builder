@@ -548,7 +548,7 @@ async function gen(){
     
     toast('Documents generated!','ok');
     gaEvent('resume_generated',{template:d.tmpl, tone:d.tone, hasCL:d.includeCoverLetter});
-    localStorage.setItem('rg_gen_attempts', attempts + 1);
+
     switchTab('res');
     
   }catch(e){
