@@ -664,79 +664,61 @@ function downloadPDF(mode) {
 
   toast(mode === 'preview' ? 'Generating PDF Preview...' : 'Generating PDF...', 'ok');
 
-  // Step 1: Clone and append to body for PDF capture
-  var clone = activeEl.cloneNode(true);
-  clone.id = 'pdf-clone';
-  clone.className = activeEl.className + ' pdf-mode';
+  // CRITICAL FIX: Stop trying to clone and hide the element! html2canvas hates hidden elements.
+  // Instead, we briefly add the pdf-mode class to the REAL visible element, 
+  // generate the PDF, and then remove it. This guarantees the PDF is never empty.
   
-  // CRITICAL FIX: html2canvas completely ignores visibility:hidden, display:none, and opacity:0.
-  // To hide the clone from the user while keeping it 100% visible to the PDF engine,
-  // we position it fixed, far below the visible screen bottom (200vh).
-  clone.style.position = 'fixed';
-  clone.style.top = '200vh';
-  clone.style.left = '0';
-  clone.style.zIndex = '-9999';
-  clone.style.visibility = 'visible';
-  clone.style.opacity = '1'; 
-  clone.style.pointerEvents = 'none';
-  document.body.appendChild(clone);
+  activeEl.classList.add('pdf-mode');
 
-  // Step 2: Wait for browser to paint, THEN measure and generate PDF
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
+  // Dynamic Fit-to-One-Page on the real element
+  var originalWidth = activeEl.style.width;
+  var contentHeight = activeEl.scrollHeight;
+  var onePageHeight = 800 * (277 / 190); // ~1168px
 
-      // Dynamic Fit-to-One-Page:
-      var contentHeight = clone.scrollHeight;
-      var onePageHeight = 800 * (277 / 190); // ~1168px
+  if (contentHeight > onePageHeight && contentHeight < onePageHeight * 1.4) {
+    var newWidth = Math.ceil(contentHeight / (277 / 190));
+    activeEl.style.width = newWidth + 'px';
+  }
 
-      if (contentHeight > onePageHeight && contentHeight < onePageHeight * 1.4) {
-        var newWidth = Math.ceil(contentHeight / (277 / 190));
-        clone.style.width = newWidth + 'px';
-      }
+  var opt = {
+    margin:      10,
+    filename:    fileName,
+    image:       { type: 'jpeg', quality: 1.0 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
 
-      var opt = {
-        margin:      10,
-        filename:    fileName,
-        image:       { type: 'jpeg', quality: 1.0 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
-        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+  var worker = html2pdf().set(opt).from(activeEl);
 
-      function cleanup() {
-        if (document.getElementById('pdf-clone')) {
-          document.body.removeChild(clone);
-        }
-      }
-
-      var worker = html2pdf().set(opt).from(clone);
-
-      if (mode === 'preview') {
-        worker.output('blob').then(function(blob) {
-          cleanup();
-          currentPdfBlob = blob;
-          currentPdfFileName = fileName;
-          var url = URL.createObjectURL(blob);
-          document.getElementById('pdfIframe').src = url;
-          document.getElementById('pdfModal').classList.add('on');
-          toast('Preview ready!', 'ok');
-        }).catch(function(err) {
-          cleanup();
-          console.error(err);
-          toast('Error generating PDF preview', 'er');
-        });
-      } else {
-        worker.save().then(function() {
-          cleanup();
-          toast('PDF Downloaded!', 'ok');
-        }).catch(function(err) {
-          cleanup();
-          console.error(err);
-          toast('Error generating PDF', 'er');
-        });
-      }
-
+  if (mode === 'preview') {
+    worker.output('blob').then(function(blob) {
+      activeEl.classList.remove('pdf-mode');
+      activeEl.style.width = originalWidth; // restore original width
+      
+      currentPdfBlob = blob;
+      currentPdfFileName = fileName;
+      var url = URL.createObjectURL(blob);
+      document.getElementById('pdfIframe').src = url;
+      document.getElementById('pdfModal').classList.add('on');
+      toast('Preview ready!', 'ok');
+    }).catch(function(err) {
+      activeEl.classList.remove('pdf-mode');
+      activeEl.style.width = originalWidth;
+      console.error(err);
+      toast('Error generating PDF preview', 'er');
     });
-  });
+  } else {
+    worker.save().then(function() {
+      activeEl.classList.remove('pdf-mode');
+      activeEl.style.width = originalWidth;
+      toast('PDF Downloaded!', 'ok');
+    }).catch(function(err) {
+      activeEl.classList.remove('pdf-mode');
+      activeEl.style.width = originalWidth;
+      console.error(err);
+      toast('Error generating PDF', 'er');
+    });
+  }
 }
 
 function closePdfModal() {
